@@ -206,7 +206,8 @@ def laPlace(image_path):
 
 if __name__ == "__main__":
     path = "/home/sergio/TCG/PruebasImagenes/lenaG.png"
-    path2 = "/home/sergio/TCG/PruebasImagenes/circuit.jpg"
+    # path2 = "/home/sergio/TCG/PruebasImagenes/circuit.jpg"
+    path2 = "/home/sergio/TCG/imagenesTCG/coins.png"
     save = "/home/sergio/TCG/results/result.jpg"
     
     #HISTOGRAMA
