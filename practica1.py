@@ -79,7 +79,7 @@ def scale(image_path, sx, sy):
     img_matrix = np.array(img)
 
     img_translation = cv2.warpAffine(img, translation_matrix, (num_cols, num_rows))
-    cv2.imshow('Translation', img_translation)
+    cv2.imshow('Scale', img_translation)
     cv2.waitKey()
 
 
@@ -133,11 +133,10 @@ def crotate(image_path, alpha):
 if __name__ == "__main__":
     path = "/home/sergio/TCG/imagenesTCG/cameraman.jpg"
     save = "/home/sergio/TCG/results/result.jpg"
-    crotate(path, 180)
-    print("hola!!!", math.cos(180*math.pi/180))
     # invert_color(path, save)
-    # exp(path, 2 , save)
+    exp(path, 2 , save)
     # log(path, 2 , save)
+    # crotate(path, 90)
     # move(path, 100, 80)
     # scale(path, 1, 0.5)
 
