@@ -3,6 +3,7 @@ import cv2
 from PIL import Image
 import math 
 from matplotlib import pyplot as plt
+import time
 
 
 # HISTOGRAMA
@@ -13,14 +14,27 @@ def drawHistogram(image_path):
     size = rows*cols
     cv2.imshow('Original', img)
     cv2.waitKey()
- 
+    
+    # print("tam = ", rows, ", ", cols)
 
 
 
     hist = cv2.calcHist([img], [0], None, [256], [0, 256])
-    # print("histograma", hist)
+    # hist,bins = np.histogram(img,256,[0,256])
+    # print("histograma", bins)
+
+    # for i in range(hist):
+    #     print(hist[i])
+
     plt.plot(hist, color = 'gray')
+    plt.xlim(0,256)
     plt.show()
+
+    # print(plt.bin())
+
+    # print(hist)
+    print("the max value is: ", hist[255][0])
+    print("the second value is: ", hist[254][0])
 
     # print(hist)
 
@@ -42,36 +56,31 @@ def drawHistogram(image_path):
 
     # print(ecualized_image)
     cv2.imshow('Ecualized Image', ecualized_image)
+    hist = cv2.calcHist([ecualized_image], [0], None, [256], [0, 256])
+    plt.plot(hist, color = 'blue')
+    plt.show()
+
     cv2.waitKey()
+    return ecualized_image
 
 
 
 # FILTROS
 
-def media(image_path, tam):
-    img = cv2.imread(image_path, 0)
-    rows, cols = img.shape[:2]
-    new_image = img.copy()
-
+def media(img,mask):
     cv2.imshow('Original', img)
-    aux_x = (tam*tam)/2
-    aux_x = aux_x/tam
-    aux_y = aux_x%tam
-
-    for i in range(0, rows-tam):
-        for j in range(0, cols-tam):
-            val = 0
-            for x in range(0, tam):
-                for y in range(0, tam):
-                    if(i+x<rows and j+x<cols):
-                        val += img[i+x][j+y]
-            val = val/(tam*tam)
-            if(i+tam < rows and j+tam<cols ):
-                new_image[i+aux_x][j+aux_y] = val
-            # new_image[i][j] = (int(img[i-1][j-1]) + int(img[i][j-1]) + int(img[i+1][j-1]) + 
-            #                    int(img[i-1][j]) + int(img[i][j]) + int(img[i+1][j]) + 
-            #                    int(img[i-1][j+1]) + int(img[i][j+1]) + int(img[i+1][j+1]))/9
-    
+    rows,cols=img.shape
+    new_image = img.copy()
+    dif=int(mask/2)
+    for i in range(dif, rows-dif):
+        for j in range(dif, cols-dif):
+            cont=0
+            sum=0
+            for x in range(i-dif,i+dif+1):
+                for y in range(j-dif,j+dif+1):
+                    sum+=int(img[x][y])
+                    cont+=1
+            new_image[i][j] = int(sum/cont)  #(int(img[i-1][j-1]) + int(img[i][j-1]) + int(img[i+1][j-1]) + int(img[i-1][j]) + int(img[i][j]) + int(img[i+1][j]) + int(img[i-1][j+1]) + int(img[i][j+1]) + int(img[i+1][j+1]))/9
     cv2.imshow('Media', new_image)
     cv2.waitKey()
 
@@ -91,60 +100,66 @@ def media_ponderada(image_path, peso):
     cv2.imshow('MediaPonderada', new_image)
     cv2.waitKey()
 
-def mediana(image_path, tam):
-    img = cv2.imread(image_path, 0)
-    rows, cols = img.shape[:2]
-    new_image = img.copy()
+# def mediana(image_path, tam):
+#     img = cv2.imread(image_path, 0)
+#     rows, cols = img.shape[:2]
+#     new_image = img.copy()
 
-    cv2.imshow('Original', img)
+#     cv2.imshow('Original', img)
 
-    for i in range(1, rows-1):
-        for j in range(1, cols-1):
-            ds = []
-            for x in range(0, tam):
-                for y in range(0, tam):
-                    ds.append(img[i+x][j+y])
-            # ds.append(img[i-1][j-1])
-            # ds.append(img[i][j-1])
-            # ds.append(img[i+1][j-1])
-            # ds.append(img[i-1][j])
-            # ds.append(img[i][j])
-            # ds.append(img[i+1][j])
-            # ds.append(img[i-1][j+1])
-            # ds.append(img[i][j+1])
-            # ds.append(img[i+1][j+1])
+#     for i in range(1, rows-1):
+#         for j in range(1, cols-1):
+#             ds = []
+#             for x in range(0, tam):
+#                 for y in range(0, tam):
+#                     ds.append(img[i+x][j+y])
+#             # ds.append(img[i-1][j-1])
+#             # ds.append(img[i][j-1])
+#             # ds.append(img[i+1][j-1])
+#             # ds.append(img[i-1][j])
+#             # ds.append(img[i][j])
+#             # ds.append(img[i+1][j])
+#             # ds.append(img[i-1][j+1])
+#             # ds.append(img[i][j+1])
+#             # ds.append(img[i+1][j+1])
 
-            ds = sorted(ds)
-            # print(ds)
-            new_image[i][j] = ds[5]
+#             ds = sorted(ds)
+#             # print(ds)
+#             new_image[i][j] = ds[tam/2]
     
+#     cv2.imshow('Mediana', new_image)
+#     cv2.waitKey()
+
+def mediana(img,mask):
+    cv2.imshow('Original', img)
+    rows,cols=img.shape
+    new_image = img.copy()
+    dif=int(mask/2)
+    for i in range(dif, rows-dif):
+        for j in range(dif, cols-dif):
+            lista=[]
+            for x in range(i-dif,i+dif+1):
+                for y in range(j-dif,j+dif+1):
+                    lista.append(int(img[x][y]))
+            lista.sort()
+            new_image[i][j]=lista[int((mask*mask)/2)]
     cv2.imshow('Mediana', new_image)
     cv2.waitKey()
 
+
 def maxmin_max(image_path):
-    img = cv2.imread(image_path, 0)
-    rows, cols = img.shape[:2]
+    rows,cols=img.shape
     new_image = img.copy()
-
-    cv2.imshow('Original', img)
-
-    for i in range(1, rows-1):
-        for j in range(1, cols-1):
-            ds = []
-            ds.append(img[i-1][j-1])
-            ds.append(img[i][j-1])
-            ds.append(img[i+1][j-1])
-            ds.append(img[i-1][j])
-            ds.append(img[i][j])
-            ds.append(img[i+1][j])
-            ds.append(img[i-1][j+1])
-            ds.append(img[i][j+1])
-            ds.append(img[i+1][j+1])
-
-            ds = sorted(ds)
-            new_image[i][j] = ds[8]
-    
-    cv2.imshow('MaxMin_MAX', new_image)
+    dif=int(mask/2)
+    for i in range(dif, rows-dif):
+        for j in range(dif, cols-dif):
+            lista=[]
+            for x in range(i-dif,i+dif+1):
+                for y in range(j-dif,j+dif+1):
+                    lista.append(int(img[x][y]))
+            lista.sort()
+            new_image[i][j]=lista[(mask*mask)-1]
+    cv2.imshow('Max', new_image)
     cv2.waitKey()
 
 def maxmin_min(image_path):
@@ -220,8 +235,8 @@ def derivada2(image_path):
     cv2.imshow('derivada2_x', new_image)
     cv2.waitKey()  
 
-def laPlace(image_path):
-    img = cv2.imread(image_path, 0)
+def laPlace(img):
+    # img = cv2.imread(image_path, 0)
     rows, cols = img.shape[:2]
     new_image = img.copy()
 
@@ -273,6 +288,41 @@ def roberts(image_path):
     cv2.imshow('Gy', Gy)
     cv2.imshow('Roberts', new_image)
     cv2.waitKey()     
+
+def gauss2(img):
+    # G = [1,2,1,2,4,2,1,2,1]
+    G = [1,4,7,4,1,4,16,26,16,4,7,26,41,26,7,4,16,26,16,4,1,4,7,4,1]
+    G = np.array(G, dtype = float)*(1./273.)
+    print(G)
+    tam=3
+    height = np.size(img, 0)
+    width = np.size(img, 1)
+    var=(tam*tam)/2
+    var=var/tam
+    vary=var%tam
+    M = img.copy()
+    img = np.asarray( img)
+    M = np.asarray( M)
+    M = np.zeros_like(img, np.uint8)
+
+    for i in range(0,height):
+        for j in range(0,width):
+            sum1=0
+            for z in range(0,tam):
+                for y in range(0,tam):
+                    if(i+z<height and j+y<width):
+                        sum1+=img[i+z][j+y]*G[z*3+y]
+            sum1=sum1/(16)
+            if(i+tam<height and j+tam<width):
+                if sum1<0:
+                    M[int(i+var)][int(j+vary)]=0
+                else: 
+                    M[int(i+var)][int(j+vary)]=sum1
+   
+    cv2.imshow('Gaussx', M)
+    cv2.waitKey()
+    return M
+
         
 def sobel(image_path):
     img = cv2.imread(image_path, 0)
@@ -341,33 +391,44 @@ def prewitt(image_path):
     cv2.waitKey()  
 
 if __name__ == "__main__":
-    # path = "/home/sergio/TCG/PruebasImagenes/lenaS.png"
+    path = "/home/sergio/TCG/PruebasImagenes/lenaG.png"
 
     # path2 = "/home/sergio/TCG/PruebasImagenes/circuit.jpg"
     # path2 = "/home/sergio/TCG/imagenesTCG/cameraman.jpg"
     # path2 = "/home/sergio/TCG/imagenesTCG/lena.jpg"
-    path2 = "/home/sergio/TCG/PruebasImagenes/church1.jpg"
+    # path2 = "/home/sergio/TCG/PruebasImagenes/f1.jpg"
+    # path2 = "/home/sergio/TCG/PruebasImagenes/f2.jpg"
+    # path2 = "/home/sergio/TCG/a4.jpg"
     # path2 = "/home/sergio/TCG/imagenesTCG/nino.jpg"
     
+
+    img = cv2.imread(path, 0)
     #HISTOGRAMA
     # drawHistogram(path2)
 
     # FILTROS
-    # media(path, 11)
+    # media(img, 11)
     # media_ponderada(path, 10)
-    # mediana(path)
+    # mediana(img, 11)
+    # maxmin_max(path2)
     # maxmin_max(path)
-    # maxmin_max(path)
-    # gauss(path)
+    gauss(path)
+    # gauss2(img)
+    dst = cv2.GaussianBlur(img,(3,3),cv2.BORDER_DEFAULT)
+    cv2.imshow("Gaussian Smoothing",dst)
+    cv2.waitKey(0) # waits until a key is pressed
 
     #BORDES
     # derivada1(path2)
     # derivada2(path2)
 
-    laPlace(path2)
+    # laPlace(path2)
     # roberts(path2)
     # sobel(path2)
     # prewitt(path2)
+
+
+    # laPlace(drawHistogram(path2))
 
 
 
